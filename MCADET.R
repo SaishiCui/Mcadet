@@ -14,10 +14,13 @@
 
 ### 5). "step" should be specified when you want to do iterations, default is 2.
 
-### 6). "n.feature.1" is the number of genes to select in the first round, default is 3,000.
+### 6). "seed" is the seed for random generator when perform leiden algorithm, the dault is NULL. 
 
-### 7). "n.feature.2" is the number of genes to select in the second round, default is 2,000.
+### 7). "n.feature.1" is the number of genes to select in the first round, default is 3,000.
 
+### 8). "n.feature.2" is the number of genes to select in the second round, default is 2,000.
+
+### 9). "clean" is the parameter when =True means clean the genes with mean gene expression less than 0.005.
 
 ### In order to run this function successfully, you need to install these packages: "irlba", "igraph", "cccd", 
 ### 'leidenalg', and "leiden"
