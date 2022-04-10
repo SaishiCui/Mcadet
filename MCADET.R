@@ -16,11 +16,14 @@
 
 ### 6). "seed" is the seed for random generator when perform leiden algorithm, the dault is NULL. 
 
-### 7). "n.feature.1" is the number of genes to select in the first round, default is 3,000.
+### 7). "n.feature" is the number of genes to be selected, default is 2,000 (for users who have domain knowledge ).
 
-### 8). "n.feature.2" is the number of genes to select in the second round, default is 2,000.
+### 9). "up.prob" is the proportion of up-regulated genes to be selected among all selected informative genes, default is 1.
 
-### 9). "clean" is the parameter when =True means clean the genes with mean gene expression less than 0.005.
+### 10). "clean" is the parameter when =True means clean the genes with mean gene expression less than 0.005.
+
+### 11). "z.thresh" is the threshold of z-score using to select informative genes, if users do not have domain knowledge and 
+###       want to select informative genes via data-driven method.
 
 ### In order to run this function successfully, you need to install these packages: "irlba", "igraph", "cccd", 
 ### 'leidenalg', and "leiden"
@@ -28,8 +31,9 @@
 
 
 
-mcadet<-function(data, n.comp=100, k=NA, run=10, step=2, seed=NULL, n.feature.1=3000, n.feature.2=2000,
-                 clean=TRUE){
+
+mcadet<-function(data, n.comp=100, k=NA, run=10, step=2, seed=NULL, n.feature=2000, up.prob=1,
+                 clean=TRUE, z.thresh=0.75){
 
 
 
@@ -163,42 +167,63 @@ for(i in 1:run){
    }
    
    
-   range.func<-function(x){
-       diff(range(x))      ## define a range function
-       }
 
-  gene.range.matrix[i,]<-apply(gene.rank.matrix,2,range.func)   ##  a matrix with each gene's rank range for each run
-  gene.min.matrix[i,]<-apply(gene.rank.matrix, 2, min)          ##  a matrix with each gene's minimum rank for each run
+  gene.range.matrix[i,]<-apply(gene.rank.matrix,2,function(x){diff(range(x))})   ##  a matrix with each gene's rank range for each run
+  gene.min.matrix[i,]<-apply(gene.rank.matrix, 2, min)                            ##  a matrix with each gene's minimum rank for each run
 
   
   }
 
 
 colnames(gene.range.matrix)<-gene.name
-colnames(gene.min.matrix)<-gene.name
 
-gene.range<-colSums(gene.range.matrix)       ## take the sum of rank range for each gene for all runs (equivalent to take the average) 
-gene.min<-colSums(gene.min.matrix)           ## take the sum of minimum rank for each gene for all runs (equivalent to take the average) 
 
+
+gene.range<-colSums(gene.range.matrix)/10      ## take the sum of rank range for each gene for all runs (equivalent to take the average) 
+gene.min<-colSums(gene.min.matrix)/10           ## take the sum of minimum rank for each gene for all runs (equivalent to take the average) 
+
+n.feature.1<-2*n.feature
+n.feature.2<-n.feature
+  
+  
+z.thresh<-z.thresh
+if(is.na(n.feature.1)){
+log_ratio<-log(gene.range/gene.min)
+check<-mean(log_ratio==-Inf)
+if(check==0){
+  log_ratio<-log_ratio
+}else{
+  log_ratio<- log_ratio[-c(which(log_ratio==-Inf))]  
+}
+
+
+
+q<-z.thresh*sd(log_ratio)+mean(log_ratio)
+
+
+gene.list<-gene.name[which(log_ratio>=q)]
+
+}else{
 
 order1<-order(gene.range,decreasing = T)[1:n.feature.1]   ## first round of filtering genes
 gene.name.order1<-gene.name[order1]
 
 filter.list.1<-gene.min[order1]
 
-order2<-order(filter.list.1,decreasing = F)[1:n.feature.2]  ## second round of filtering genes
+ if(up.prob!=1){
+order2<-order(filter.list.1,decreasing = F)[1:round((n.feature.2*up.prob))]  ## second round of filtering genes
+order3<-order(filter.list.1,decreasing = T)[1:round((n.feature.2*(1-up.prob)))]
+gene.list<-gene.name.order1[c(order2,order3) ]                   ## final features list
+}else{
+  order2<-order(filter.list.1,decreasing = F)[1:round((n.feature.2*up.prob))]  ## second round of filtering genes
+  gene.list<-gene.name.order1[c(order2) ]                   ## final features list
+ }
+}
 
 
-gene.list<-gene.name.order1[order2]                   ## final features list
 
-
-
-
-
-obj<-list(genelist=gene.list, gene.range.matrix=gene.range.matrix, gene.min.matrix=gene.min.matrix)  ## the final list to return
-
-
-
+obj<-list(genelist=gene.list, gene.range.matrix=gene.range.matrix, 
+          gene.min.matrix=gene.min.matrix)  ## the final list to return
 
 return(obj)
 
