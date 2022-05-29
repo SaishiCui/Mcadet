@@ -38,11 +38,11 @@ mcadet<-function(data, n.comp=100, k.list=NULL, step=2, run=10, seed=NULL, n.fea
                  fdr=0.15){
   
   
+  mean.expression<-apply(data,1,mean)
+  working.data=data[mean.expression>=clean.thresh,]      ##  keep genes with positive expression (delete empty and low expression genes)##
   
-  working.data = data[rowSums(data)!=0,]          ##  keep genes with positive expression (delete empty genes)##
+
   
-  mean.expression<-apply(working.data,1,mean)
-  working.data=working.data[mean.expression>=clean.thresh,]
   
   gene.name<-rownames(working.data)               ##  extract gene's name in a list ## 
   
@@ -54,6 +54,7 @@ mcadet<-function(data, n.comp=100, k.list=NULL, step=2, run=10, seed=NULL, n.fea
   }else{
     k.set=k.list
   }
+  
   
   
   
@@ -179,13 +180,10 @@ mcadet<-function(data, n.comp=100, k.list=NULL, step=2, run=10, seed=NULL, n.fea
   }
   
   colnames(gene.logR.matrix)<-gene.name
-  gene.logR<-colMeans(gene.logR.matrix)     
+  gene.logR<-colMeans(gene.logR.matrix)     ##  mean log Maximum/Minimum for each gene over all runs ##
     
 
 
-  
-     ## take the sum of minimum rank for each gene for all runs (equivalent to take the average) 
-  
   
   if(is.na(n.feature)){
   
@@ -201,7 +199,7 @@ mcadet<-function(data, n.comp=100, k.list=NULL, step=2, run=10, seed=NULL, n.fea
       logR_matrix[j,]=logR_list       
     }
     
-    logR_hist<-colMeans(logR_matrix)
+    logR_hist<-colMeans(logR_matrix)   ## Monte Carlo simulation for log Maximum/Minimum distribution (multiple runs) ##
     
 
     
@@ -209,21 +207,25 @@ mcadet<-function(data, n.comp=100, k.list=NULL, step=2, run=10, seed=NULL, n.fea
     
     pval_list<-rep(NA,length(gene.name))
     for (i in 1:length(gene.name)) {
-      p.val=mean(logR_hist>gene.logR[i])
+      p.val=mean(logR_hist>gene.logR[i])    ## upper-tailed p-values calculation ##
       pval_list[i]=p.val
     }
     
     pval_df<-data.frame(gene.name,pval_list)
     sorted_pval<- sort(pval_list)
+    sorted_pval<-sorted_pval[sorted_pval<0.9]    # remove last one or two p-value histogram blocks,
+                                                 # to make p-values be uniformly distributed ##
+    
+    
     
     
     position_list<-NULL
-    for (i in 1:length(gene.name)) {
-      if(sorted_pval[i]< fdr*i/length(gene.name)){
+    for (i in 1:length(sorted_pval)) {
+      if(sorted_pval[i]< fdr*i/length(sorted_pval)){
       position_list<-append(position_list,i)}
       
     }
-    fdr_thresh<-sorted_pval[length(position_list)]
+    fdr_thresh<-sorted_pval[length(position_list)]   # find L and corresponding p-value threshold in BH precedure#
     
     
     gene.list<-pval_df[pval_df$pval_list<=fdr_thresh,"gene.name"]
@@ -240,7 +242,7 @@ mcadet<-function(data, n.comp=100, k.list=NULL, step=2, run=10, seed=NULL, n.fea
     
     
   }else{
-   DE_label<-order(gene.logR,decreasing = T)[1:n.feature]
+   DE_label<-order(gene.logR,decreasing = T)[1:n.feature]   # if users know how many genes they want #
    gene.list<-gene.name[DE_label]
    
    p.val.list<-NULL
@@ -261,7 +263,6 @@ mcadet<-function(data, n.comp=100, k.list=NULL, step=2, run=10, seed=NULL, n.fea
   return(obj)
   
 }
-
 
 
 
