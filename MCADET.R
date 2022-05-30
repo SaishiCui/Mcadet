@@ -9,7 +9,7 @@
 ### 2). "n.comp" is the number of PCs selected from MCA decomposition, default is 100.
 
 ### 3). "k.list" is a list containing the number of k used to draw K-NN graph, 
-###  default is 0.05*(ncols of your input data set), namely, 0.05* the number of the cells.
+###  default is 0.01*(ncols of your input data set), namely, 0.01* the number of the cells.
 
 ### 4). "run" is the number of iterations you want to run to get a more robust result, default is 10.
 
@@ -19,11 +19,11 @@
 
 ### 7). "n.feature" is the number of genes to be selected, default is NA (for users who have domain knowledge ).
 
-### 8). "p" is the type I error for feature selection, default is 0.05.
+### 8). "clean" is the parameter when =True means clean the genes with mean gene expression less than 0.005.
 
 ### 9). "fdr" is the false discovery rate for BH method to correct multiple testing issue, default is 0.15.
 
-### 10). "clean" is the parameter when =True means clean the genes with mean gene expression less than 0.005.
+
 
 
 
@@ -34,7 +34,7 @@
 
 
 
-mcadet<-function(data, n.comp=100, k.list=NULL, step=2, run=10, seed=NULL, n.feature=NA, p=0.05, clean.thresh=0.005,
+mcadet<-function(data, n.comp=100, k.list=NULL, step=2, run=10, seed=NULL, n.feature=NA, clean.thresh=0.005,
                  fdr=0.15){
   
   
