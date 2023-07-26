@@ -8,7 +8,7 @@ library("irlba")
 
 
 
-### This function has 7 parameters in total:
+### This function has 8 parameters in total:
 
 ### 1). "data" is the input data, a raw count matrix
 ###     genes on columns and cells on rows, the matrix should have 
