@@ -27,7 +27,7 @@ mcadet(data, n.comp=60,  run=10, n.feature=NA, nk_percent = 0.005, start_resolut
 
 # Function Parameters:
 
-1) "data" is the input data, a raw count matrix. Genes are on columns and cells on rows. The matrix should have row names that represent gene names.
+1) "data" is the input data, a raw count matrix. Genes are on rows and cells on columns. The matrix should have row names that represent gene names.
 
 2) "n.comp" is the number of PCs selected from MCA decomposition, default is 60.
 
