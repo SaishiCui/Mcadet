@@ -18,7 +18,7 @@ mcadet(
 )
 }
 \arguments{
-\item{data}{A raw count matrix where rows represent cells and columns represent genes.}
+\item{data}{A raw count matrix (or data frame) where rows represent genes and columns represent cells. (must have row and column names)}
 
 \item{n.comp}{The number of principal components (PCs) selected from MCA decomposition. Default is 60.}
 
@@ -37,14 +37,21 @@ mcadet(
 \item{seed}{The random seed for the Leiden algorithm. Default is 1234.}
 }
 \value{
-A list of selected genes, or a data frame with p-values and log ratios if `n.feature` is set to NA.
+The function returns a `data.frame` with three columns:
+\itemize{
+  \item \strong{gene}: The name of each selected gene.
+  \item \strong{logR}: The log ratio (maximum/minimum rank) of each gene's ranking across iterations.
+  \item \strong{p.value}: The p-value obtained from Monte-Carlo simulations, representing the significance of each gene.
+}
 }
 \description{
 This function performs feature selection for scRNA-seq (count-based) data. It integrates Multiple Correspondence Analysis (MCA), graph-based community detection, and a novel statistical testing approach to select the most significant features (genes).
 }
 \examples{
 \dontrun{
-data <- matrix(rnbinom(1000,2,0.5), nrow = 100, ncol = 10)
+data <- matrix(rnbinom(10000000,2,0.5), nrow = 10000, ncol = 1000)
+rownames(data) = paste0("Gene_", c(1:10000))
+colnames(data) = paste0("Cell_", c(1:1000))
 selected_genes <- mcadet(data)
 }
 
